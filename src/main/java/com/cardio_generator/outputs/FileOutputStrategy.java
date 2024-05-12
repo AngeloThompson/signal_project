@@ -10,6 +10,10 @@ import java.nio.file.StandardOpenOption;
 
 // Section 5.2.2, class name changed to UpperCamelCase.
 // Section 4.2, all indentations changed to +2 spaces.
+/**
+ * This class implements the OutputStrategy interface to output health data to a file.
+ * It creates separate files for each different type of health data.
+ */
 public class FileOutputStrategy implements OutputStrategy {
 
   // Section 5.2.5, field name changed to camelCase.
@@ -18,6 +22,11 @@ public class FileOutputStrategy implements OutputStrategy {
   // Section 4.6.2, horizontol whitespace added before and after "<>" and after ")".
   public final ConcurrentHashMap <String, String> file_map = new ConcurrentHashMap <> () ;
 
+  /**
+   * Constructs a new FileOutputStrategy with the specified base directory.
+   * 
+   * @param baseDirectory The base directory where output files will be stored as a String.
+   */
   public FileOutputStrategy(String baseDirectory) {
 
     this.baseDirectory = baseDirectory;
@@ -25,6 +34,16 @@ public class FileOutputStrategy implements OutputStrategy {
   // Comments added here to reduce clutter.
   // Section 4.6.2, space added after all ")" in this method.
   // Section 7.2, comment punctuation added to all comments in this method.
+  /**
+   * Outputs health data corresponding with given patient IDs, timestamp,
+   *     and health data label to a file.
+   * Creates a new file containing a specific type of health data if not already present. 
+   * 
+   * @param patientId The ID of the patient as an integer.
+   * @param timestamp The timestamp of the health data as a long.
+   * @param label     The type of the health data as a String.
+   * @param data      The actual health data to be written to the file as a String.
+   */
   @Override
   public void output(int patientId, long timestamp, String label, String data) {
     try {
