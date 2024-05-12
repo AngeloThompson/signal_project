@@ -5,6 +5,19 @@ import com.cardio_generator.outputs.OutputStrategy;
 import java.util.Random;
 
 // Reduced the indentation to 2 spaces for all the following code (section 4.2).
+
+/**
+ * The AlerGenerator class generates alerts for patients and
+ *     sends the alert data to an output strategy.
+ * 
+ * This class implements the PatientDataGenerator interface to generate alerts for patients.
+ * 
+ * Alerts can either be triggered or resolved, and the generator simulates the occurrence 
+ *     and resolution of alerts based on predefined probabilities.
+ * 
+ * This class is intended for use within a medical monitoring system where
+ *     alerts need to be generated and processed for multiple patients.
+ */
 public class AlertGenerator implements PatientDataGenerator {
 
   // Added a single space after each ")" below (section 4.6.2).
@@ -14,12 +27,30 @@ public class AlertGenerator implements PatientDataGenerator {
   // Changed the field name to camelCase (section 5.2.5).
   private boolean[] alertStates; // false = resolved, true = pressed.
 
+    /**
+     * Constructs an AlertGenerator with the specified number of patients.
+     * 
+     * @param patientCount The total number of patients for whom alerts need to be generated
+     *     as an integer.
+     */
     public AlertGenerator(int patientCount) {
       alertStates = new boolean[patientCount + 1];
     }
 
     // Added a single space after each ")" in the below method (section 4.6.2).
     // Added punctuation to all comments (section 7.2).
+    /**
+     * Generates alerts for a specific patient and sends the alert data to an output strategy.
+     * 
+     * @param patientId The ID of the patient for whom the alert data is being generated.
+     *     It specifies the unique identifier of the patient as an integer.
+     * 
+     * @param outputStrategy The strategy used to output the generated alert data which specifies
+     *     the output strategy to which the generated alert data will be sent.
+     * 
+     * @throws None is explicitly thrown but any exceptions occurring during
+     *     the generation process are caught and handled within the method.
+     */
     @Override
     public void generate(int patientId, OutputStrategy outputStrategy) {
       try {
