@@ -1,5 +1,6 @@
 package com.alerts;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.data_management.DataStorage;
@@ -14,6 +15,7 @@ import com.data_management.PatientRecord;
  */
 public class AlertGenerator {
     private DataStorage dataStorage;
+    private List<Alert> alerts;
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
@@ -25,6 +27,7 @@ public class AlertGenerator {
      */
     public AlertGenerator(DataStorage dataStorage) {
         this.dataStorage = dataStorage;
+        this.alerts = new ArrayList<>();
     }
 
     /**
@@ -40,7 +43,7 @@ public class AlertGenerator {
     public void evaluateData(Patient patient) {
         // Implementation goes here
         // 20 minute time window.
-        List<PatientRecord> records = dataStorage.getRecords(patient.getPatientId(),System.currentTimeMillis(),(long)(System.currentTimeMillis()+1200000));
+        List<PatientRecord> records = dataStorage.getRecords(patient.getPatientId(),(long)System.currentTimeMillis()-1200000,(long)(System.currentTimeMillis()));
         int systolicTrend=0;
         double prevSystolic=0;
         int diastolicTrend =0;
@@ -52,45 +55,54 @@ public class AlertGenerator {
         boolean lowSat=false;
 
         for (PatientRecord record:records){
+            String recordType = record.getRecordType();
+            double measurementValue = record.getMeasurementValue();
+            long timestamp = record.getTimestamp();
+            int patientId = record.getPatientId();
+
+            switch (recordType){
+
             // blood pressure checks
-            if (record.getRecordType().equals("SystolicPressure")){
+            case "SystolicPressure":{
                 // systolic pressure check.
-                if(systolicCriticalCheck(record.getMeasurementValue())>=0){
+                if(systolicCriticalCheck(measurementValue)>=0){
                     // Systolic pressure low
-                    if(systolicCriticalCheck(record.getMeasurementValue())==0){
+                    if(systolicCriticalCheck(measurementValue)==0){
                         lowSystolic=true;
                     }
-                    else{lowSystolic=false;}
-                    Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                    triggerAlert(alert); 
+                    else{
+                        lowSystolic=false;
+                    }
+                    triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                 }
                 // if systolic pressure trend occurs.
                 int increment = systolicTrend(prevSystolic,record.getMeasurementValue());
                 if (increment!=0){
                     // if the trend is in the oppositie direction of previous trend.
-                    if((systolicTrend>0&&increment==-1)||(systolicTrend<0&&increment==1)){systolicTrend=0;}
-                    
+                    if((systolicTrend>0&&increment==-1)||(systolicTrend<0&&increment==1)){
+                        systolicTrend=0;
+                    }
                     systolicTrend += increment;
                     // if positive trend.
                     if(systolicTrend==3){
                         systolicTrend=0;
-                        Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                        triggerAlert(alert); 
+                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                     }
                     // if negetaive trend.
                     else if(systolicTrend== -3){
                         systolicTrend=0;
-                        Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                        triggerAlert(alert); 
+                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                     }
                 }
                 else {systolicTrend=0;}
-                prevSystolic = record.getMeasurementValue();
+                prevSystolic = measurementValue;
+                break;
             }
+
             // diastolic pressure checks.
-            else if (record.getRecordType().equals("DiastolicPressure")){
+            case "DiastolicPressure":{
                 // diastolic pressure high.
-                if(diastolicCriticalCheck(record.getMeasurementValue())>=0){
+                if(diastolicCriticalCheck(measurementValue)>=0){
                     Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
                     triggerAlert(alert); 
                 }
@@ -98,60 +110,61 @@ public class AlertGenerator {
                 int increment = diastolicTrend(prevSystolic,record.getMeasurementValue());
                 if (increment!=0){
                     // if the trend is in the oppositie direction of previous trend.
-                    if((diastolicTrend>0&&increment==-1)||(diastolicTrend<0&&increment==1)){diastolicTrend=0;}
+                    if((diastolicTrend>0&&increment==-1)||(diastolicTrend<0&&increment==1)){
+                        diastolicTrend=0;
+                    }
                     diastolicTrend += increment;
                     // if positive trend.
                     if(diastolicTrend==3){
                         systolicTrend=0;
-                        Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                        triggerAlert(alert); 
+                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                     }
                     // if negetaive trend.
                     else if(diastolicTrend== -3){
                         systolicTrend=0;
-                        Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                        triggerAlert(alert); 
+                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                     }
                 }
                 else {systolicTrend=0;}
-                prevDiastolic = record.getMeasurementValue();
+                prevDiastolic = measurementValue;
+                break;
             }
             // blood O2 saturation 
-            else if (record.getRecordType().equals("Saturation")){
-                    // Low Saturation Alert
-                    if (record.getMeasurementValue() < 92) {
-                        lowSat=true;
-                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp()));
+            case "Saturation":{
+                // Low Saturation Alert
+                if (measurementValue < 92) {
+                    lowSat=true;
+                    triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp()));
+                }
+                else{lowSat=false;}
+                // Rapid Drop Alert
+                if (prevTimestamp != 0 && timestamp - prevTimestamp <= 600000) { // Within 10 minutes interval
+                    double drop = prevOxygenSaturation - measurementValue;
+                    if (drop >= 5) {
+                        triggerAlert(new Alert(""+record.getPatientId(), "Rapid Drop Alert", record.getTimestamp()));
                     }
-                    else{lowSat=false;}
-                    // Rapid Drop Alert
-                    if (prevTimestamp != 0 && record.getTimestamp() - prevTimestamp <= 600000) { // Within 10 minutes interval
-                        double drop = prevOxygenSaturation - record.getMeasurementValue();
-                        if (drop >= 5) {
-                            triggerAlert(new Alert(""+record.getPatientId(), "Rapid Drop Alert", record.getTimestamp()));
-                        }
-                    }
-                    prevOxygenSaturation = record.getMeasurementValue();
-                    prevTimestamp = record.getTimestamp();
+                }
+                prevOxygenSaturation = measurementValue;
+                prevTimestamp = timestamp;
+                break;
             }
             // ECG check.
-            else if (record.getRecordType().equals("ECG")){
+            case "ECG":{
                 // Abnormal heart rate check.
-                if(record.getMeasurementValue() <50 ||record.getMeasurementValue()>100){
-                    Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                    triggerAlert(alert); 
+                if(measurementValue <50 ||measurementValue >100){
+                    triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                 }
                 // Irregular beat pattern check.
-                final int abnormalThreshold=30; // Threshold for abnormal ECG readings.
-                if (record.getMeasurementValue()>=prevBPM+abnormalThreshold||record.getMeasurementValue()<prevBPM-abnormalThreshold) { 
+                if (Math.abs(prevBPM - measurementValue) >= 30) { 
                     triggerAlert(new Alert(""+record.getPatientId(), "Irregular_BPM", record.getTimestamp()));
                 }
-                prevBPM = record.getMeasurementValue();
+                prevBPM = measurementValue;
+                break;
+            }
             }
             // Hypotensive hypoxia check 
             if (lowSystolic&&lowSat){
-                Alert alert = new Alert(""+record.getPatientId(), "HypotensiveHypoxemia", record.getTimestamp());
-                triggerAlert(alert);
+                triggerAlert(new Alert(""+record.getPatientId(), "HypotensiveHypoxemia", record.getTimestamp()));
             }
         }
     }
@@ -166,6 +179,7 @@ public class AlertGenerator {
      */
     private void triggerAlert(Alert alert) {
         // Implementation might involve logging the alert or notifying staff
+        // Logs the alert generated.
         alerts.add(alert);
     }
     // Added methods.
