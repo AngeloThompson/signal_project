@@ -75,7 +75,7 @@ public class AlertGenerator {
                     triggerAlert(new Alert(""+record.getPatientId(), "CriticalSystolicPressure", record.getTimestamp()));
                 }
                 // if systolic pressure trend occurs.
-                int increment = systolicTrend(prevSystolic,record.getMeasurementValue());
+                int increment = systolicTrend(prevSystolic,measurementValue);
                 if (increment!=0){
                     // if the trend is in the oppositie direction of previous trend.
                     if((systolicTrend>0&&increment==-1)||(systolicTrend<0&&increment==1)){
@@ -106,13 +106,8 @@ public class AlertGenerator {
                         diastolicTrend=0;
                     }
                     diastolicTrend += increment;
-                    // if positive trend.
-                    if(diastolicTrend==3){
-                        systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), "DiastolicPressureTrend", record.getTimestamp())); 
-                    }
-                    // if negetaive trend.
-                    else if(diastolicTrend== -3){
+                    // if positive or negative trend.
+                    if(diastolicTrend==3||diastolicTrend== -3){
                         systolicTrend=0;
                         triggerAlert(new Alert(""+record.getPatientId(), "DiastolicPressureTrend", record.getTimestamp())); 
                     }
@@ -174,6 +169,9 @@ public class AlertGenerator {
     public List<Alert> getAllAlerts(){
         return this.alerts;
     }
+    public Alert getAlertAt(int index){
+        return this.alerts.get(index);
+    }
     // Added methods.
     public int systolicTrend(double systolic1, double systolic2) {
         // Check for high trend
@@ -186,11 +184,11 @@ public class AlertGenerator {
     }
     public int diastolicTrend(double diastolic1, double diastolic2) {
         // Check for high trend
-        double systolicTemp=diastolic1+10;
-        if (diastolic2>systolicTemp){return 1;}
+        double Temp=diastolic1+10;
+        if (diastolic2>Temp){return 1;}
         // Check for low trend
-        systolicTemp=diastolic1-10;
-        if (diastolic2<systolicTemp){return -1;}
+        Temp=diastolic1-10;
+        if (diastolic2<Temp){return -1;}
         return 0;
     }
     
@@ -198,13 +196,13 @@ public class AlertGenerator {
         // Check for Critical Threshold Alert
         if (systolic > 180) {return 1;}
         else if (systolic < 90) {return 0;}
-        else return 0;
+        else return -1;
     }
     public int diastolicCriticalCheck(double diastolic) {
         // Check for Critical Threshold Alert
         if (diastolic > 120) {return 1;}
         else if (diastolic < 60) {return 0;}
-        else return 0;
+        else return -1;
     }
 
     // Added methods.

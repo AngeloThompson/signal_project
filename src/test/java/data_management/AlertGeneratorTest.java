@@ -31,19 +31,18 @@ public class AlertGeneratorTest {
     void setUp() {
         dataStorage = mock(DataStorage.class);
         alertGenerator = new AlertGenerator(dataStorage);
-        Patient patient = new Patient(1);
+        patient = new Patient(1);
     }
     
     @Test
     @DisplayName("Low Systolic Pressure")
     void testSystolicPressureCriticalLow() {
-        PatientRecord lowSystolic = new PatientRecord(1,185, "SystolicPressure", System.currentTimeMillis());
+        PatientRecord lowSystolic = new PatientRecord(1,85, "SystolicPressure", System.currentTimeMillis());
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(lowSystolic));
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("CriticalSystolicPressure", alert.getCondition());
@@ -51,13 +50,12 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("High Systolic Pressure")
     void testSystolicPressureCriticalHigh() {
-        PatientRecord highSystolic = new PatientRecord(1,85, "SystolicPressure", System.currentTimeMillis());
+        PatientRecord highSystolic = new PatientRecord(1,185, "SystolicPressure", System.currentTimeMillis());
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(highSystolic));
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("CriticalSystolicPressure", alert.getCondition());
@@ -66,27 +64,30 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Systolic Pressure Increase Trend")
     void testSystolicPressureIncreaseTrend() {
-        PatientRecord record1 = new PatientRecord(1,100, "SystolicPressure", System.currentTimeMillis()-10000);
-        PatientRecord record2 = new PatientRecord(1,111, "SystolicPressure", System.currentTimeMillis()-5000);
-        PatientRecord record3 = new PatientRecord(1,122, "SystolicPressure", System.currentTimeMillis());
-        
-        List<PatientRecord> records = Arrays.asList(record1, record2, record3);
+        //PatientRecord record1 = new PatientRecord(1,100, "SystolicPressure", System.currentTimeMillis()-1000);
+        //PatientRecord record2 = new PatientRecord(1,111, "SystolicPressure", System.currentTimeMillis()-500);
+        //PatientRecord record3 = new PatientRecord(1,122, "SystolicPressure", System.currentTimeMillis());
+        dataStorage.addPatientData(1,100,"SystolicPressure",System.currentTimeMillis()-1000);
+        dataStorage.addPatientData(1,111,"SystolicPressure",System.currentTimeMillis()-500);
+        dataStorage.addPatientData(1,122,"SystolicPressure",System.currentTimeMillis());
 
-        when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
+        //List<PatientRecord> records = Arrays.asList(record1, record2, record3);
 
+        //when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
+        alertGenerator = new AlertGenerator(dataStorage);
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("SystolicPressureTrend", alert.getCondition());
     }
+    @Test
     @DisplayName("Systolic Pressure Decrease Trend")
     void testSystolicPressureDecreaseTrend() {
-        PatientRecord record1 = new PatientRecord(1,100, "SystolicPressure", System.currentTimeMillis()-10000);
-        PatientRecord record2 = new PatientRecord(1,99, "SystolicPressure", System.currentTimeMillis()-5000);
-        PatientRecord record3 = new PatientRecord(1,88, "SystolicPressure", System.currentTimeMillis());
+        PatientRecord record1 = new PatientRecord(1,150, "SystolicPressure", System.currentTimeMillis()-10000);
+        PatientRecord record2 = new PatientRecord(1,130, "SystolicPressure", System.currentTimeMillis()-5000);
+        PatientRecord record3 = new PatientRecord(1,110, "SystolicPressure", System.currentTimeMillis());
         
         List<PatientRecord> records = Arrays.asList(record1, record2, record3);
 
@@ -94,8 +95,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("SystolicPressureTrend", alert.getCondition());
@@ -110,8 +110,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("CriticalDiastolicPressure", alert.getCondition());
@@ -125,8 +124,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("CriticalDiastolicPressure", alert.getCondition());
@@ -144,8 +142,9 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        //ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
+        //Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("DiastolicPressureTrend", alert.getCondition());
@@ -163,8 +162,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("DiastolicPressureTrend", alert.getCondition());
@@ -178,9 +176,10 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
+        // ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
         // verify(dataStorage, times(1)).triggerAlert(alertCaptor.capture());
-        Alert alert = alertCaptor.getValue();
+        //Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("LowSaturation", alert.getCondition());
@@ -196,8 +195,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("rapidSaturationDrop", alert.getCondition());
@@ -205,24 +203,24 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Hypotensive Hypoxemia")
     void testHypotensiveHypoxia() {
-        PatientRecord record1 = new PatientRecord(1,89, "SystolicPressure", System.currentTimeMillis());
         PatientRecord record2 = new PatientRecord(1,91, "Saturation", System.currentTimeMillis()-100);
+        PatientRecord record1 = new PatientRecord(1,89, "SystolicPressure", System.currentTimeMillis());
 
         List<PatientRecord> records = Arrays.asList(record1, record2);
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
 
         alertGenerator.evaluateData(patient);
 
-        List<Alert> alerts = alertGenerator.getAllAlerts();
-        Alert alert1 = alerts.get(0);
-        Alert alert2 = alerts.get(1);
-        Alert alert3 = alerts.get(2);
+        Alert alert1 = alertGenerator.getAlertAt(0);
+        Alert alert2 = alertGenerator.getAlertAt(1);
+        Alert alert3 = alertGenerator.getAlertAt(2);
 
         assertEquals("1", alert1.getPatientId());
-        assertEquals("CriticalSystolicPressure", alert1.getCondition());
-        assertEquals("LowSaturation", alert2.getCondition());
+        assertEquals("LowSaturation", alert1.getCondition());
+        assertEquals("CriticalSystolicPressure", alert2.getCondition());
         assertEquals("HypotensiveHypoxemia", alert3.getCondition());
     }
+
     @Test
     @DisplayName("Low Bpm")
     void testBPMLow() {
@@ -231,11 +229,10 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
-        assertEquals("CriticalBPM", alert.getCondition());
+        assertEquals("CriticalHeartRate", alert.getCondition());
     }
     @Test
     @DisplayName("High Bpm")
@@ -245,8 +242,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("CriticalHeartRate", alert.getCondition());
@@ -267,8 +263,7 @@ public class AlertGeneratorTest {
 
         alertGenerator.evaluateData(patient);
 
-        ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
-        Alert alert = alertCaptor.getValue();
+        Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
         assertEquals("IrregularHeartRate", alert.getCondition());
