@@ -66,14 +66,15 @@ public class AlertGenerator {
             case "SystolicPressure":{
                 // systolic pressure check.
                 if(systolicCriticalCheck(measurementValue)>=0){
-                    // Systolic pressure low
+                    // Systolic pressure low check
                     if(systolicCriticalCheck(measurementValue)==0){
-                        lowSystolic=true;
+                        lowSystolic=true; 
+                        triggerAlert(new Alert(""+record.getPatientId(), "LowSystolicPressure", record.getTimestamp()));
                     }
                     else{
                         lowSystolic=false;
+                        triggerAlert(new Alert(""+record.getPatientId(), "HighSystolicPressure", record.getTimestamp()));
                     }
-                    triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
                 }
                 // if systolic pressure trend occurs.
                 int increment = systolicTrend(prevSystolic,record.getMeasurementValue());
@@ -86,12 +87,12 @@ public class AlertGenerator {
                     // if positive trend.
                     if(systolicTrend==3){
                         systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
+                        triggerAlert(new Alert(""+record.getPatientId(), "SystolicPressureIncreaseTrend", record.getTimestamp())); 
                     }
                     // if negetaive trend.
                     else if(systolicTrend== -3){
                         systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
+                        triggerAlert(new Alert(""+record.getPatientId(), "SystolicPressureDecreaseTrend", record.getTimestamp())); 
                     }
                 }
                 else {systolicTrend=0;}
@@ -186,19 +187,19 @@ public class AlertGenerator {
     public int systolicTrend(double systolic1, double systolic2) {
         // Check for high trend
         double systolicTemp=systolic1+10;
-        if (systolic2>=systolicTemp){return 1;}
+        if (systolic2>systolicTemp){return 1;}
         // Check for low trend
         systolicTemp=systolic1-10;
-        if (systolic2<=systolicTemp){return -1;}
+        if (systolic2<systolicTemp){return -1;}
         return 0;
     }
     public int diastolicTrend(double diastolic1, double diastolic2) {
         // Check for high trend
         double systolicTemp=diastolic1+10;
-        if (diastolic2>=systolicTemp){return 1;}
+        if (diastolic2>systolicTemp){return 1;}
         // Check for low trend
         systolicTemp=diastolic1-10;
-        if (diastolic2<=systolicTemp){return -1;}
+        if (diastolic2<systolicTemp){return -1;}
         return 0;
     }
     
