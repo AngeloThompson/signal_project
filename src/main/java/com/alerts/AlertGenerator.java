@@ -50,9 +50,10 @@ public class AlertGenerator {
         double prevDiastolic =0;
         double prevOxygenSaturation = 0;
         long prevTimestamp = 0;
-        double prevBPM=0;
-        boolean lowSystolic=false; // adjust
+        double avgBPM=0;
+        boolean lowSystolic=false; 
         boolean lowSat=false;
+        int ecgCount = 0; // number of ECG meaurements.
 
         for (PatientRecord record:records){
             String recordType = record.getRecordType();
@@ -89,7 +90,6 @@ public class AlertGenerator {
                 }
                 else {systolicTrend=0;}
                 prevSystolic = measurementValue;
-                break;
             }
 
             // diastolic pressure checks.
@@ -109,49 +109,46 @@ public class AlertGenerator {
                     // if positive trend.
                     if(diastolicTrend==3){
                         systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
+                        triggerAlert(new Alert(""+record.getPatientId(), "DiastolicPressureTrend", record.getTimestamp())); 
                     }
                     // if negetaive trend.
                     else if(diastolicTrend== -3){
                         systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
+                        triggerAlert(new Alert(""+record.getPatientId(), "DiastolicPressureTrend", record.getTimestamp())); 
                     }
                 }
                 else {systolicTrend=0;}
                 prevDiastolic = measurementValue;
-                break;
             }
             // blood O2 saturation 
             case "Saturation":{
                 // Low Saturation Alert
                 if (measurementValue < 92) {
                     lowSat=true;
-                    triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp()));
-                }
-                else{lowSat=false;}
+                    triggerAlert(new Alert(""+record.getPatientId(), "LowSaturation", record.getTimestamp()));
+                } else {lowSat=false;}
+
                 // Rapid Drop Alert
                 if (prevTimestamp != 0 && timestamp - prevTimestamp <= 600000) { // Within 10 minutes interval
                     double drop = prevOxygenSaturation - measurementValue;
                     if (drop >= 5) {
-                        triggerAlert(new Alert(""+record.getPatientId(), "Rapid Drop Alert", record.getTimestamp()));
+                        triggerAlert(new Alert(""+record.getPatientId(), "rapidSaturationDrop", record.getTimestamp()));
                     }
                 }
                 prevOxygenSaturation = measurementValue;
                 prevTimestamp = timestamp;
-                break;
             }
             // ECG check.
             case "ECG":{
                 // Abnormal heart rate check.
-                if(measurementValue <50 ||measurementValue >100){
-                    triggerAlert(new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp())); 
+                if(measurementValue <60 ||measurementValue >180){
+                    triggerAlert(new Alert(""+record.getPatientId(), "CriticalHeartRate", record.getTimestamp())); 
                 }
                 // Irregular beat pattern check.
-                if (Math.abs(prevBPM - measurementValue) >= 30) { 
-                    triggerAlert(new Alert(""+record.getPatientId(), "Irregular_BPM", record.getTimestamp()));
+                if (Math.abs(avgBPM - measurementValue) >= 50) { 
+                    triggerAlert(new Alert(""+record.getPatientId(), "IrregularHeartRate", record.getTimestamp()));
                 }
-                prevBPM = measurementValue;
-                break;
+                avgBPM = ((avgBPM * ecgCount)+ measurementValue)/++ecgCount;
             }
             }
             // Hypotensive hypoxia check 
@@ -173,6 +170,9 @@ public class AlertGenerator {
         // Implementation might involve logging the alert or notifying staff
         // Logs the alert generated.
         alerts.add(alert);
+    }
+    public List<Alert> getAllAlerts(){
+        return this.alerts;
     }
     // Added methods.
     public int systolicTrend(double systolic1, double systolic2) {
