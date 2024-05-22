@@ -69,12 +69,9 @@ public class AlertGenerator {
                     // Systolic pressure low check
                     if(systolicCriticalCheck(measurementValue)==0){
                         lowSystolic=true; 
-                        triggerAlert(new Alert(""+record.getPatientId(), "LowSystolicPressure", record.getTimestamp()));
                     }
-                    else{
-                        lowSystolic=false;
-                        triggerAlert(new Alert(""+record.getPatientId(), "HighSystolicPressure", record.getTimestamp()));
-                    }
+                    else{lowSystolic=false;}
+                    triggerAlert(new Alert(""+record.getPatientId(), "CriticalSystolicPressure", record.getTimestamp()));
                 }
                 // if systolic pressure trend occurs.
                 int increment = systolicTrend(prevSystolic,record.getMeasurementValue());
@@ -84,15 +81,10 @@ public class AlertGenerator {
                         systolicTrend=0;
                     }
                     systolicTrend += increment;
-                    // if positive trend.
-                    if(systolicTrend==3){
+                    // if positive or negative trend.
+                    if(systolicTrend==3 || systolicTrend== -3){
                         systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), "SystolicPressureIncreaseTrend", record.getTimestamp())); 
-                    }
-                    // if negetaive trend.
-                    else if(systolicTrend== -3){
-                        systolicTrend=0;
-                        triggerAlert(new Alert(""+record.getPatientId(), "SystolicPressureDecreaseTrend", record.getTimestamp())); 
+                        triggerAlert(new Alert(""+record.getPatientId(), "SystolicPressureTrend", record.getTimestamp())); 
                     }
                 }
                 else {systolicTrend=0;}
@@ -102,13 +94,12 @@ public class AlertGenerator {
 
             // diastolic pressure checks.
             case "DiastolicPressure":{
-                // diastolic pressure high.
+                // diastolic pressure Critical.
                 if(diastolicCriticalCheck(measurementValue)>=0){
-                    Alert alert = new Alert(""+record.getPatientId(), record.getRecordType(), record.getTimestamp());
-                    triggerAlert(alert); 
+                    triggerAlert(new Alert(""+record.getPatientId(), "CriticalDiastolicPressure", record.getTimestamp())); 
                 }
                 // if systolic pressure trend occurs.
-                int increment = diastolicTrend(prevSystolic,record.getMeasurementValue());
+                int increment = diastolicTrend(prevDiastolic,record.getMeasurementValue());
                 if (increment!=0){
                     // if the trend is in the oppositie direction of previous trend.
                     if((diastolicTrend>0&&increment==-1)||(diastolicTrend<0&&increment==1)){
