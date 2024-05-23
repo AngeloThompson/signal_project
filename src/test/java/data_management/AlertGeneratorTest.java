@@ -64,16 +64,14 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Systolic Pressure Increase Trend")
     void testSystolicPressureIncreaseTrend() {
-        //PatientRecord record1 = new PatientRecord(1,100, "SystolicPressure", System.currentTimeMillis()-1000);
-        //PatientRecord record2 = new PatientRecord(1,111, "SystolicPressure", System.currentTimeMillis()-500);
-        //PatientRecord record3 = new PatientRecord(1,122, "SystolicPressure", System.currentTimeMillis());
-        dataStorage.addPatientData(1,100,"SystolicPressure",System.currentTimeMillis()-1000);
-        dataStorage.addPatientData(1,111,"SystolicPressure",System.currentTimeMillis()-500);
-        dataStorage.addPatientData(1,122,"SystolicPressure",System.currentTimeMillis());
+        PatientRecord record1 = new PatientRecord(1,100, "SystolicPressure", System.currentTimeMillis()-1000);
+        PatientRecord record2 = new PatientRecord(1,111, "SystolicPressure", System.currentTimeMillis()-500);
+        PatientRecord record3 = new PatientRecord(1,122, "SystolicPressure", System.currentTimeMillis()-100);
+        PatientRecord record4 = new PatientRecord(1,133, "SystolicPressure", System.currentTimeMillis());
 
-        //List<PatientRecord> records = Arrays.asList(record1, record2, record3);
+        List<PatientRecord> records = Arrays.asList(record1, record2, record3,record4);
 
-        //when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
+        when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
         alertGenerator = new AlertGenerator(dataStorage);
         alertGenerator.evaluateData(patient);
 
@@ -87,9 +85,10 @@ public class AlertGeneratorTest {
     void testSystolicPressureDecreaseTrend() {
         PatientRecord record1 = new PatientRecord(1,150, "SystolicPressure", System.currentTimeMillis()-10000);
         PatientRecord record2 = new PatientRecord(1,130, "SystolicPressure", System.currentTimeMillis()-5000);
-        PatientRecord record3 = new PatientRecord(1,110, "SystolicPressure", System.currentTimeMillis());
+        PatientRecord record3 = new PatientRecord(1,110, "SystolicPressure", System.currentTimeMillis()-100);
+        PatientRecord record4 = new PatientRecord(1,99, "SystolicPressure", System.currentTimeMillis());
         
-        List<PatientRecord> records = Arrays.asList(record1, record2, record3);
+        List<PatientRecord> records = Arrays.asList(record1, record2, record3,record4);
 
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
 
@@ -132,11 +131,12 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Diastolic Pressure Increase Trend")
     void testDiastolicPressureIncreaseTrend() {
-        PatientRecord record1 = new PatientRecord(1,100, "DiastolicPressure", System.currentTimeMillis()-10000);
-        PatientRecord record2 = new PatientRecord(1,111, "DiastolicPressure", System.currentTimeMillis()-5000);
-        PatientRecord record3 = new PatientRecord(1,122, "DiastolicPressure", System.currentTimeMillis());
+        PatientRecord record1 = new PatientRecord(1,80, "DiastolicPressure", System.currentTimeMillis()-10000);
+        PatientRecord record2 = new PatientRecord(1,91, "DiastolicPressure", System.currentTimeMillis()-5000);
+        PatientRecord record3 = new PatientRecord(1,102, "DiastolicPressure", System.currentTimeMillis()-100);
+        PatientRecord record4 = new PatientRecord(1,113, "DiastolicPressure", System.currentTimeMillis());
         
-        List<PatientRecord> records = Arrays.asList(record1, record2, record3);
+        List<PatientRecord> records = Arrays.asList(record1, record2, record3,record4);
 
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
 
@@ -152,11 +152,12 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Diastolic Pressure Decrease Trend")
     void testDiastolicPressureDecreaseTrend() {
-        PatientRecord record1 = new PatientRecord(1,100, "DiastolicPressure", System.currentTimeMillis()-10000);
+        PatientRecord record1 = new PatientRecord(1,110, "DiastolicPressure", System.currentTimeMillis()-10000);
         PatientRecord record2 = new PatientRecord(1,99, "DiastolicPressure", System.currentTimeMillis()-5000);
-        PatientRecord record3 = new PatientRecord(1,88, "DiastolicPressure", System.currentTimeMillis());
+        PatientRecord record3 = new PatientRecord(1,88, "DiastolicPressure", System.currentTimeMillis()-100);
+        PatientRecord record4 = new PatientRecord(1,77, "DiastolicPressure", System.currentTimeMillis());
         
-        List<PatientRecord> records = Arrays.asList(record1, record2, record3);
+        List<PatientRecord> records = Arrays.asList(record1, record2, record3, record4);
 
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
 
@@ -188,9 +189,9 @@ public class AlertGeneratorTest {
     @DisplayName("Rapid Saturation Drop")
     void testOxygenSaturationDrop() {
         PatientRecord saturation1 = new PatientRecord(1,95, "Saturation", System.currentTimeMillis());
-        PatientRecord saturation2 = new PatientRecord(1,100, "Saturation", System.currentTimeMillis()-100);
+        PatientRecord saturation2 = new PatientRecord(1,110, "Saturation", System.currentTimeMillis()-100);
 
-        List<PatientRecord> records = Arrays.asList(saturation1, saturation2);
+        List<PatientRecord> records = Arrays.asList(saturation2, saturation1);
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
 
         alertGenerator.evaluateData(patient);
@@ -203,8 +204,8 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Hypotensive Hypoxemia")
     void testHypotensiveHypoxia() {
-        PatientRecord record2 = new PatientRecord(1,91, "Saturation", System.currentTimeMillis()-100);
-        PatientRecord record1 = new PatientRecord(1,89, "SystolicPressure", System.currentTimeMillis());
+        PatientRecord record1 = new PatientRecord(1,91, "Saturation", System.currentTimeMillis()-100);
+        PatientRecord record2 = new PatientRecord(1,89, "SystolicPressure", System.currentTimeMillis());
 
         List<PatientRecord> records = Arrays.asList(record1, record2);
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);

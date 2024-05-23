@@ -43,7 +43,7 @@ public class AlertGenerator {
     public void evaluateData(Patient patient) {
         // Implementation goes here
         // 20 minute time window.
-        List<PatientRecord> records = dataStorage.getRecords(patient.getPatientId(),(long)System.currentTimeMillis()-1200000,(long)(System.currentTimeMillis()));
+        List<PatientRecord> records = dataStorage.getRecords(patient.getPatientId(),System.currentTimeMillis()-1200000,(System.currentTimeMillis()));
         int systolicTrend=0;
         double prevSystolic=0;
         int diastolicTrend =0;
@@ -59,7 +59,7 @@ public class AlertGenerator {
             String recordType = record.getRecordType();
             double measurementValue = record.getMeasurementValue();
             long timestamp = record.getTimestamp();
-            int patientId = record.getPatientId();
+            //int patientId = record.getPatientId();
 
             switch (recordType){
 
@@ -68,15 +68,12 @@ public class AlertGenerator {
                 // systolic pressure check.
                 if(systolicCriticalCheck(measurementValue)>=0){
                     // Systolic pressure low check
-                    if(systolicCriticalCheck(measurementValue)==0){
-                        lowSystolic=true; 
-                    }
-                    else{lowSystolic=false;}
+                    lowSystolic= systolicCriticalCheck(measurementValue) == 0;
                     triggerAlert(new Alert(""+record.getPatientId(), "CriticalSystolicPressure", record.getTimestamp()));
                 }
                 // if systolic pressure trend occurs.
                 int increment = systolicTrend(prevSystolic,measurementValue);
-                if (increment!=0){
+                if (increment!=0 && prevSystolic !=0){
                     // if the trend is in the oppositie direction of previous trend.
                     if((systolicTrend>0&&increment==-1)||(systolicTrend<0&&increment==1)){
                         systolicTrend=0;
@@ -90,6 +87,7 @@ public class AlertGenerator {
                 }
                 else {systolicTrend=0;}
                 prevSystolic = measurementValue;
+                break;
             }
 
             // diastolic pressure checks.
@@ -99,8 +97,8 @@ public class AlertGenerator {
                     triggerAlert(new Alert(""+record.getPatientId(), "CriticalDiastolicPressure", record.getTimestamp())); 
                 }
                 // if systolic pressure trend occurs.
-                int increment = diastolicTrend(prevDiastolic,record.getMeasurementValue());
-                if (increment!=0){
+                int increment = diastolicTrend(prevDiastolic,measurementValue);
+                if (increment!=0 && prevDiastolic !=0){
                     // if the trend is in the oppositie direction of previous trend.
                     if((diastolicTrend>0&&increment==-1)||(diastolicTrend<0&&increment==1)){
                         diastolicTrend=0;
@@ -108,12 +106,13 @@ public class AlertGenerator {
                     diastolicTrend += increment;
                     // if positive or negative trend.
                     if(diastolicTrend==3||diastolicTrend== -3){
-                        systolicTrend=0;
+                        diastolicTrend=0;
                         triggerAlert(new Alert(""+record.getPatientId(), "DiastolicPressureTrend", record.getTimestamp())); 
                     }
                 }
-                else {systolicTrend=0;}
+                else {diastolicTrend=0;}
                 prevDiastolic = measurementValue;
+                break;
             }
             // blood O2 saturation 
             case "Saturation":{
@@ -124,14 +123,13 @@ public class AlertGenerator {
                 } else {lowSat=false;}
 
                 // Rapid Drop Alert
-                if (prevTimestamp != 0 && timestamp - prevTimestamp <= 600000) { // Within 10 minutes interval
-                    double drop = prevOxygenSaturation - measurementValue;
-                    if (drop >= 5) {
-                        triggerAlert(new Alert(""+record.getPatientId(), "rapidSaturationDrop", record.getTimestamp()));
-                    }
+                double drop = prevOxygenSaturation - measurementValue;
+                if (prevTimestamp != 0 && timestamp - prevTimestamp <= 600000 && drop >= 5) { // Within 10 minutes interval
+                    triggerAlert(new Alert(""+record.getPatientId(), "rapidSaturationDrop", record.getTimestamp()));
                 }
                 prevOxygenSaturation = measurementValue;
                 prevTimestamp = timestamp;
+                break;
             }
             // ECG check.
             case "ECG":{
@@ -144,6 +142,7 @@ public class AlertGenerator {
                     triggerAlert(new Alert(""+record.getPatientId(), "IrregularHeartRate", record.getTimestamp()));
                 }
                 avgBPM = ((avgBPM * ecgCount)+ measurementValue)/++ecgCount;
+                break;
             }
             }
             // Hypotensive hypoxia check 
@@ -175,20 +174,16 @@ public class AlertGenerator {
     // Added methods.
     public int systolicTrend(double systolic1, double systolic2) {
         // Check for high trend
-        double systolicTemp=systolic1+10;
-        if (systolic2>systolicTemp){return 1;}
+        if (systolic2>systolic1+10){return 1;}
         // Check for low trend
-        systolicTemp=systolic1-10;
-        if (systolic2<systolicTemp){return -1;}
+        else if (systolic2<systolic1-10){return -1;}
         return 0;
     }
     public int diastolicTrend(double diastolic1, double diastolic2) {
         // Check for high trend
-        double Temp=diastolic1+10;
-        if (diastolic2>Temp){return 1;}
+        if (diastolic2>diastolic1 +10){return 1;}
         // Check for low trend
-        Temp=diastolic1-10;
-        if (diastolic2<Temp){return -1;}
+        else if (diastolic2<diastolic1-10){return -1;}
         return 0;
     }
     
