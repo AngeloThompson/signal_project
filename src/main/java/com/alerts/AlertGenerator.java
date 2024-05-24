@@ -1,7 +1,9 @@
 package com.alerts;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -16,6 +18,8 @@ import com.data_management.PatientRecord;
 public class AlertGenerator {
     private DataStorage dataStorage;
     private List<Alert> alerts;
+    private static final int SLIDING_WINDOW_SIZE = 10; // Size of the sliding window for averaging ECG values
+    private static final double PEAK_THRESHOLD_MULTIPLIER = 1.5; // Multiplier to determine significant peaks
 
     /**
      * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
@@ -50,10 +54,12 @@ public class AlertGenerator {
         double prevDiastolic =0;
         double prevOxygenSaturation = 0;
         long prevTimestamp = 0;
-        double avgBPM=0;
         boolean lowSystolic=false; 
         boolean lowSat=false;
-        int ecgCount = 0; // number of ECG meaurements.
+        
+
+        Queue<Double> ecgWindow = new LinkedList<>();
+        double ecgSum = 0;
 
         for (PatientRecord record:records){
             String recordType = record.getRecordType();
@@ -133,15 +139,22 @@ public class AlertGenerator {
             }
             // ECG check.
             case "ECG":{
-                // Abnormal heart rate check.
-                if(measurementValue <60 ||measurementValue >180){
-                    triggerAlert(new Alert(""+record.getPatientId(), "CriticalHeartRate", record.getTimestamp())); 
+
+                // Calculate the average ECG value over the sliding window
+                double ecgAverage = ecgSum / ecgWindow.size();
+
+                // Check for significant peak
+                if (Math.abs(measurementValue) > ecgAverage * PEAK_THRESHOLD_MULTIPLIER) {
+                    triggerAlert(new Alert("" + record.getPatientId(), "SignificantEcgPeak", record.getTimestamp()));
                 }
-                // Irregular beat pattern check.
-                if (Math.abs(avgBPM - measurementValue) >= 50) { 
-                    triggerAlert(new Alert(""+record.getPatientId(), "IrregularHeartRate", record.getTimestamp()));
+
+                // Add the current ECG value to the sliding window
+                if (ecgWindow.size() == SLIDING_WINDOW_SIZE) {
+                    ecgSum -= ecgWindow.poll();
                 }
-                avgBPM = ((avgBPM * ecgCount)+ measurementValue)/++ecgCount;
+                
+                ecgWindow.add(measurementValue);
+                ecgSum += measurementValue;
                 break;
             }
             }

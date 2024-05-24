@@ -2,18 +2,16 @@ package data_management;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.DisplayName;
 
 import com.alerts.Alert;
@@ -221,42 +219,14 @@ public class AlertGeneratorTest {
         assertEquals("CriticalSystolicPressure", alert2.getCondition());
         assertEquals("HypotensiveHypoxemia", alert3.getCondition());
     }
-
     @Test
-    @DisplayName("Low Bpm")
-    void testBPMLow() {
-        PatientRecord BPM = new PatientRecord(1,59, "ECG", System.currentTimeMillis());
-        when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(BPM));
-
-        alertGenerator.evaluateData(patient);
-
-        Alert alert = alertGenerator.getAlertAt(0);
-
-        assertEquals("1", alert.getPatientId());
-        assertEquals("CriticalHeartRate", alert.getCondition());
-    }
-    @Test
-    @DisplayName("High Bpm")
-    void testBPMHigh() {
-        PatientRecord BPM = new PatientRecord(1,181, "ECG", System.currentTimeMillis());
-        when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(BPM));
-
-        alertGenerator.evaluateData(patient);
-
-        Alert alert = alertGenerator.getAlertAt(0);
-
-        assertEquals("1", alert.getPatientId());
-        assertEquals("CriticalHeartRate", alert.getCondition());
-    }
-
-    @Test
-    @DisplayName("Irregular ECG checks")
-    void testECGAbnormalHeartRate() {
-        PatientRecord record1 = new PatientRecord(1,100, "ECG", System.currentTimeMillis()-1000);
-        PatientRecord record2 = new PatientRecord(1,100, "ECG", System.currentTimeMillis()-900);
-        PatientRecord record3 = new PatientRecord(1,100, "ECG", System.currentTimeMillis()-800);
-        PatientRecord record4 = new PatientRecord(1,100, "ECG", System.currentTimeMillis()-700);
-        PatientRecord record5 = new PatientRecord(1,150, "ECG", System.currentTimeMillis());
+    @DisplayName("ECG peak")
+    void testSignificantEcgPeakDetection() {
+        PatientRecord record1 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-1000);
+        PatientRecord record2 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-900);
+        PatientRecord record3 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-800);
+        PatientRecord record4 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-700);
+        PatientRecord record5 = new PatientRecord(1,0.85, "ECG", System.currentTimeMillis());
 
         List<PatientRecord> records = Arrays.asList(record1, record2,record3,record4,record5);
 
@@ -267,6 +237,48 @@ public class AlertGeneratorTest {
         Alert alert = alertGenerator.getAlertAt(0);
 
         assertEquals("1", alert.getPatientId());
-        assertEquals("IrregularHeartRate", alert.getCondition());
+        assertEquals("SignificantEcgPeak", alert.getCondition());
+    }
+    @Test
+    @DisplayName("ECG negative peak")
+    void testSignificantEcgPeakNegative() {
+        PatientRecord record1 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-1000);
+        PatientRecord record2 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-900);
+        PatientRecord record3 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-800);
+        PatientRecord record4 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-700);
+        PatientRecord record5 = new PatientRecord(1,-0.85, "ECG", System.currentTimeMillis());
+
+        List<PatientRecord> records = Arrays.asList(record1, record2,record3,record4,record5);
+
+        when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
+
+        alertGenerator.evaluateData(patient);
+
+        Alert alert = alertGenerator.getAlertAt(0);
+
+        assertEquals("1", alert.getPatientId());
+        assertEquals("SignificantEcgPeak", alert.getCondition());
+    }
+    @Test
+    @DisplayName("Sliding window test")
+    public void testEcgSlidingWindowAverage() {
+        // Setup: Create a patient and some ECG records
+        Patient patient = new Patient(1);
+        List<PatientRecord> records = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            records.add(new PatientRecord(1, 1.0 + i * 0.1,"ECG", System.currentTimeMillis() - (10000 - i * 1000)));
+        }
+        records.add(new PatientRecord(1, 5.0,"ECG", System.currentTimeMillis() - 500)); // peak
+
+        // Return records.
+        when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
+
+        // Execute: Evaluate the patient data
+        alertGenerator.evaluateData(patient);
+
+        // Verify: Check if the alert for significant ECG peak is triggered
+        List<Alert> alerts = alertGenerator.getAllAlerts();
+        assertFalse(alerts.isEmpty());
+        assertEquals("SignificantEcgPeak", alerts.get(0).getCondition());
     }
 }
