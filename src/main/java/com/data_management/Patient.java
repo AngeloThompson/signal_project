@@ -2,6 +2,7 @@ package com.data_management;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Represents a patient and manages their medical records.
@@ -12,6 +13,7 @@ import java.util.List;
 public class Patient {
     private int patientId;
     private List<PatientRecord> patientRecords;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(); // ensures that reading and writing operations do not conflict.
 
     /**
      * Constructs a new Patient with a specified ID.
@@ -36,8 +38,12 @@ public class Patient {
      *                         milliseconds since UNIX epoch
      */
     public void addRecord(double measurementValue, String recordType, long timestamp) {
-        PatientRecord record = new PatientRecord(this.patientId, measurementValue, recordType, timestamp);
-        this.patientRecords.add(record);
+        lock.writeLock().lock();
+        try {
+            patientRecords.add(new PatientRecord(patientId, measurementValue, recordType, timestamp));
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     /**
@@ -53,15 +59,20 @@ public class Patient {
      */
     public List<PatientRecord> getRecords(long startTime, long endTime) {
         // TODO Implement and test this method
-        List<PatientRecord> filteredRecords = new ArrayList<>();
+        lock.readLock().lock();
+        try {
+            List<PatientRecord> filteredRecords = new ArrayList<>();
 
-        for (PatientRecord record : patientRecords) {
-            long recordTime = record.getTimestamp();
-            if (recordTime >= startTime && recordTime <= endTime) {
-                filteredRecords.add(record);
+            for (PatientRecord record : patientRecords) {
+                long recordTime = record.getTimestamp();
+                if (recordTime >= startTime && recordTime <= endTime) {
+                    filteredRecords.add(record);
+                }
             }
+            return filteredRecords;
+        } finally {
+            lock.readLock().unlock();
         }
-        return filteredRecords;
     }
         
     public int getPatientId(){

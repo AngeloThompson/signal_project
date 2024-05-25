@@ -17,6 +17,22 @@ public class WebSocketClient implements DataReader {
     private DataStorage dataStorage;
     private URI serverUri;
     private Timer reconnectTimer;
+    private WebSocketContainer container;
+    /**
+     * Default constructor which uses the default WebSocketContainer.
+     */
+    public WebSocketClient() {
+        this(ContainerProvider.getWebSocketContainer());
+    }
+
+    /**
+     * Constructor that accepts a WebSocketContainer for testing purposes.
+     *
+     * @param container the WebSocketContainer to use for connecting
+     */
+    public WebSocketClient(WebSocketContainer container) {
+        this.container = container;
+    }
 
     /**
      * Connects to the WebSocket server using the provided URI.
@@ -37,7 +53,6 @@ public class WebSocketClient implements DataReader {
      * @throws IOException if there is an error during connection
      */
     private void connectToServer() throws IOException {
-        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         try {
             container.connectToServer(this, serverUri);
         } catch (DeploymentException e) {
@@ -165,7 +180,7 @@ public class WebSocketClient implements DataReader {
     /**
      * Schedules a reconnection attempt after a delay.
      */
-    private void scheduleReconnect() {
+    public void scheduleReconnect() {
         if (reconnectTimer != null) {
             reconnectTimer.cancel();
         }
