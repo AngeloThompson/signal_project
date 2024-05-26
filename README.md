@@ -1,6 +1,9 @@
 ## Project Members 
 - student ID: i6325951
 - student ID: i6347056
+
+## UML Diagrams Week 2
+The UML Diagrams for week 2 can be found here \signal_project\week2_tasks
 # Cardio Data Simulator
 
 The Cardio Data Simulator is a Java-based application designed to simulate real-time cardiovascular data for multiple patients. This tool is particularly useful for educational purposes, enabling students to interact with real-time data streams of ECG, blood pressure, blood saturation, and other cardiovascular signals.
