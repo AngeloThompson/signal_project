@@ -13,13 +13,14 @@ import org.junit.jupiter.api.*;
 import javax.websocket.DeploymentException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
+//import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class IntegrationTest {
+class IntegrationTests {
 
     private static WebSocketServer server;
     private WebSocketClient client;
@@ -30,11 +31,13 @@ class IntegrationTest {
     static void startServer() {
         server = new SimpleWebSocketServer(new InetSocketAddress(8080));
         server.start();
+        System.out.println("Server started successfully");
     }
 
     @AfterAll
     static void stopServer() throws IOException, InterruptedException {
         server.stop();
+        System.out.println("Server stopped successfully");
     }
 
     @BeforeEach
@@ -52,6 +55,7 @@ class IntegrationTest {
     }
 
     @Test
+    @DisplayName("Real Time Data processing and AlertGeneration")
     void testRealTimeDataProcessingAndAlertGeneration() throws InterruptedException {
         // Simulate sending data from the server
         String data = "1,1627849261000,HeartRate,72.5";
@@ -79,6 +83,7 @@ class IntegrationTest {
     }
 
     @Test
+    @DisplayName("Handle Corrupted Data")
     void testHandleCorruptedData() throws InterruptedException {
         // Simulate sending corrupted data from the server
         String corruptedData = "corrupted,data";
@@ -100,15 +105,14 @@ class IntegrationTest {
         server.stop();
         Thread.sleep(1000);
 
-        // Attempt to reconnect the client
+        // Attempt to reconnect the client after 5 seconds.
         client.scheduleReconnect();
 
         // Wait for the client to attempt reconnection
-        Thread.sleep(6000);
-
         // Restart the server
         server = new SimpleWebSocketServer(new InetSocketAddress(8080));
         server.start();
+        Thread.sleep(6000);
 
         // Simulate sending data from the server after reconnection
         String data = "1,1627849261000,HeartRate,72.5";
@@ -117,7 +121,7 @@ class IntegrationTest {
         }
 
         // Wait for the client to process the message
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // Verify data storage
         List<PatientRecord> records = dataStorage.getRecords(1, 1627849260000L, 1627849262000L);

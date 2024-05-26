@@ -26,7 +26,7 @@ public class WebSocketClient implements DataReader {
     }
 
     /**
-     * Constructor that accepts a WebSocketContainer for testing purposes.
+     * Constructor that accepts a WebSocketContainer for testing.
      *
      * @param container the WebSocketContainer to use for connecting
      */
@@ -90,6 +90,7 @@ public class WebSocketClient implements DataReader {
             long timestamp = record.getTimestamp();
             String recordType = record.getRecordType();
             dataStorage.addPatientData(patientId, measurementValue, recordType, timestamp);
+            System.out.println("Added data to storage: " + record);
         } else {
             System.err.println("Received corrupted data: " + data);
         }
@@ -121,10 +122,12 @@ public class WebSocketClient implements DataReader {
                 double value = Double.parseDouble(parts[3]);
                 return new PatientRecord(patientId, value, label, timestamp);
             } else {
-                return null;
+                // For corrupted data.
+                return null; 
             }
         } catch (Exception e) {
             e.printStackTrace();
+            // For corrupted data.
             return null;
         }
     }
@@ -150,6 +153,7 @@ public class WebSocketClient implements DataReader {
      */
     @OnMessage
     public void onMessage(String message) {
+        System.out.println("Received message: " + message);
         handleData(message, dataStorage);
     }
 
@@ -173,6 +177,7 @@ public class WebSocketClient implements DataReader {
      */
     @OnError
     public void onError(Session session, Throwable throwable) {
+        System.err.println("Error on WebSocket connection: " + throwable.getMessage());
         throwable.printStackTrace();
         scheduleReconnect();
     }
@@ -189,8 +194,10 @@ public class WebSocketClient implements DataReader {
             @Override
             public void run() {
                 try {
+                    System.out.println("Attempting to reconnect to WebSocket server");
                     connectToServer();
                 } catch (IOException e) {
+                    System.err.println("Reconnection attempt failed: " + e.getMessage());
                     e.printStackTrace();
                 }
             }

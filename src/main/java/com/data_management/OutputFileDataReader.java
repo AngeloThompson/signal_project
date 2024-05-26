@@ -13,7 +13,7 @@ import java.util.Scanner;
  * <p>This class reads data from the specified directory and passes it to a {@link DataStorage}
  * for further processing.
  */
-public class OutputFileDataReader implements DataReader {
+public class OutputFileDataReader { // should implement dataReader
 
     private String outputDir;
     private String label;
@@ -35,7 +35,7 @@ public class OutputFileDataReader implements DataReader {
      * @param dataStorage the storage where data will be stored
      * @throws IOException if an I/O error occurs while reading the data
      */
-    @Override
+    //@Override
     public void readData(DataStorage dataStorage) throws IOException {
         // Construct the path to the output file
         Path outputFile = Paths.get(outputDir, label+".txt");

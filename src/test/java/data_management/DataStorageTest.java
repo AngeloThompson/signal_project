@@ -45,6 +45,7 @@ class DataStorageTest {
         assertEquals(4,allPatients.size());
     }
     @Test
+    @DisplayName("Add and retrieve data")
     void testAddAndRetrievePatientData() {
         storage.addPatientData(1, 72.5, "HeartRate", 1627849261000L);
         List<PatientRecord> records = storage.getRecords(1, 1627849260000L, 1627849262000L);
@@ -53,12 +54,14 @@ class DataStorageTest {
     }
 
     @Test
+    @DisplayName("get non existant record")
     void testGetRecordsForNonexistentPatient() {
         List<PatientRecord> records = storage.getRecords(999, 1627849260000L, 1627849262000L);
         assertTrue(records.isEmpty());
     }
 
     @Test
+    @DisplayName("Concurrent Data Updates")
     void testConcurrentDataUpdates() throws InterruptedException {
         Thread thread1 = new Thread(() -> storage.addPatientData(1, 72.5, "HeartRate", 1627849261000L));
         Thread thread2 = new Thread(() -> storage.addPatientData(1, 120.8, "BloodPressure", 1627849262000L));
