@@ -1,7 +1,19 @@
 package com.alerts;
 
+/**
+ * The {@code BloodPressureAlertFactory} class is a concrete implementation of the {@link AlertFactory}
+ * abstract class. It is responsible for creating instances of {@link BloodPressureAlert}.
+ */
 public class BloodPressureAlertFactory extends AlertFactory{
 
+    /**
+     * Creates a new {@link BloodPressureAlert} instance with the specified patient ID, condition, and timestamp.
+     *
+     * @param patientId  the ID of the patient for whom the alert is generated.
+     * @param condition  the condition that triggered the alert.
+     * @param timestamp  the time at which the alert was generated.
+     * @return a new instance of {@link BloodPressureAlert}
+     */
     @Override
     public Alert createAlert (String patientId, String condition, long timestamp){
 
