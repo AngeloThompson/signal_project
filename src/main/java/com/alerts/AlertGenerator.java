@@ -1,9 +1,7 @@
 package com.alerts;
 
 import java.util.ArrayList;
-// import java.util.LinkedList;
 import java.util.List;
-// import java.util.Queue;
 
 import com.data_management.DataStorage;
 import com.data_management.Patient;
@@ -59,122 +57,6 @@ public class AlertGenerator {
                 triggerAlert(triggeredAlert);
             }
         }
-        // List<PatientRecord> records = dataStorage.getRecords(patient.getPatientId(),System.currentTimeMillis()-1200000,(System.currentTimeMillis()));
-        // int systolicTrend=0;
-        // double prevSystolic=0;
-        // int diastolicTrend =0;
-        // double prevDiastolic =0;
-        // double prevOxygenSaturation = 0;
-        // long prevTimestamp = 0;
-        // boolean lowSystolic=false; 
-        // boolean lowSat=false;
-        
-
-        // Queue<Double> ecgWindow = new LinkedList<>();
-        // double ecgSum = 0;
-
-        // for (PatientRecord record:records){
-        //     String recordType = record.getRecordType();
-        //     double measurementValue = record.getMeasurementValue();
-        //     long timestamp = record.getTimestamp();
-        //     //int patientId = record.getPatientId();
-
-        //     switch (recordType){
-
-        //     // blood pressure checks
-        //     case "SystolicPressure":{
-        //         // systolic pressure check.
-        //         if(systolicCriticalCheck(measurementValue)>=0){
-        //             // Systolic pressure low check
-        //             lowSystolic= systolicCriticalCheck(measurementValue) == 0;
-        //             triggerAlert(new Alert(""+record.getPatientId(), "CriticalSystolicPressure", record.getTimestamp()));
-        //         }
-        //         // if systolic pressure trend occurs.
-        //         int increment = systolicTrend(prevSystolic,measurementValue);
-        //         if (increment!=0 && prevSystolic !=0){
-        //             // if the trend is in the oppositie direction of previous trend.
-        //             if((systolicTrend>0&&increment==-1)||(systolicTrend<0&&increment==1)){
-        //                 systolicTrend=0;
-        //             }
-        //             systolicTrend += increment;
-        //             // if positive or negative trend.
-        //             if(systolicTrend==3 || systolicTrend== -3){
-        //                 systolicTrend=0;
-        //                 triggerAlert(new Alert(""+record.getPatientId(), "SystolicPressureTrend", record.getTimestamp())); 
-        //             }
-        //         }
-        //         else {systolicTrend=0;}
-        //         prevSystolic = measurementValue;
-        //         break;
-        //     }
-
-        //     // diastolic pressure checks.
-        //     case "DiastolicPressure":{
-        //         // diastolic pressure Critical.
-        //         if(diastolicCriticalCheck(measurementValue)>=0){
-        //             triggerAlert(new Alert(""+record.getPatientId(), "CriticalDiastolicPressure", record.getTimestamp())); 
-        //         }
-        //         // if systolic pressure trend occurs.
-        //         int increment = diastolicTrend(prevDiastolic,measurementValue);
-        //         if (increment!=0 && prevDiastolic !=0){
-        //             // if the trend is in the oppositie direction of previous trend.
-        //             if((diastolicTrend>0&&increment==-1)||(diastolicTrend<0&&increment==1)){
-        //                 diastolicTrend=0;
-        //             }
-        //             diastolicTrend += increment;
-        //             // if positive or negative trend.
-        //             if(diastolicTrend==3||diastolicTrend== -3){
-        //                 diastolicTrend=0;
-        //                 triggerAlert(new Alert(""+record.getPatientId(), "DiastolicPressureTrend", record.getTimestamp())); 
-        //             }
-        //         }
-        //         else {diastolicTrend=0;}
-        //         prevDiastolic = measurementValue;
-        //         break;
-        //     }
-        //     // blood O2 saturation 
-        //     case "Saturation":{
-        //         // Low Saturation Alert
-        //         if (measurementValue < 92) {
-        //             lowSat=true;
-        //             triggerAlert(new Alert(""+record.getPatientId(), "LowSaturation", record.getTimestamp()));
-        //         } else {lowSat=false;}
-
-        //         // Rapid Drop Alert
-        //         double drop = prevOxygenSaturation - measurementValue;
-        //         if (prevTimestamp != 0 && timestamp - prevTimestamp <= 600000 && drop >= 5) { // Within 10 minutes interval
-        //             triggerAlert(new Alert(""+record.getPatientId(), "rapidSaturationDrop", record.getTimestamp()));
-        //         }
-        //         prevOxygenSaturation = measurementValue;
-        //         prevTimestamp = timestamp;
-        //         break;
-        //     }
-        //     // ECG check.
-        //     case "ECG":{
-
-        //         // Calculate the average ECG value over the sliding window
-        //         double ecgAverage = ecgSum / ecgWindow.size();
-
-        //         // Check for significant peak
-        //         if (Math.abs(measurementValue) > ecgAverage * PEAK_THRESHOLD_MULTIPLIER) {
-        //             triggerAlert(new Alert("" + record.getPatientId(), "SignificantEcgPeak", record.getTimestamp()));
-        //         }
-
-        //         // Add the current ECG value to the sliding window
-        //         if (ecgWindow.size() == SLIDING_WINDOW_SIZE) {
-        //             ecgSum -= ecgWindow.poll();
-        //         }
-                
-        //         ecgWindow.add(measurementValue);
-        //         ecgSum += measurementValue;
-        //         break;
-        //     }
-        //     }
-        //     // Hypotensive hypoxia check 
-        //     if (lowSystolic&&lowSat){
-        //         triggerAlert(new Alert(""+record.getPatientId(), "HypotensiveHypoxemia", record.getTimestamp()));
-        //     }
-        // }
     }
 
     /**

@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-//import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -32,6 +31,7 @@ class WebSocketClientTest {
         mockContainer = mock(WebSocketContainer.class);
         client = new WebSocketClient(mockContainer);
         mockDataStorage = Mockito.mock(DataStorage.class);
+        DataStorage.setInstance(mockDataStorage); // Set the mock instance
         client.startReading(mockDataStorage);
     }
 

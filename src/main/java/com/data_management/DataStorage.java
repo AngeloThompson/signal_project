@@ -23,7 +23,7 @@ public class DataStorage {
      * Constructs a new instance of DataStorage, initializing the underlying storage
      * structure.
      */
-    public DataStorage() {
+    private DataStorage() {
         this.patientMap = new ConcurrentHashMap<>(); // thread-safe access and updates to the patient map.
     }
     /**
@@ -31,16 +31,16 @@ public class DataStorage {
      *
      * @return the singleton instance of DataStorage
      */
-    public static DataStorage getInstance() {
+    public static synchronized DataStorage getInstance() {
         
         if (instance == null) {
-            synchronized (DataStorage.class) {
-                if (instance == null) {
-                    instance = new DataStorage();
-                }
-            }
+            instance = new DataStorage();
         }
         return instance;
+    }
+    // set the singleton instance for testing
+    public static synchronized void setInstance(DataStorage mockInstance) {
+        instance = mockInstance;
     }
 
     /**

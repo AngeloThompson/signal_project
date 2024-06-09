@@ -18,7 +18,8 @@ class DataStorageTest {
 
     @BeforeEach
     void setUp() {
-        storage = new DataStorage();
+        DataStorage.setInstance(null);
+        storage = DataStorage.getInstance();
     }
 
     @Test

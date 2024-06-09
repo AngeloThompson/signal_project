@@ -18,6 +18,9 @@ import com.alerts.Alert;
 import com.data_management.DataStorage;
 import com.alerts.AlertGenerator;
 import com.alerts.BloodPressureStrategy;
+import com.alerts.HeartRateStrategy;
+import com.alerts.HypotensiveHypoxiaStrategy;
+import com.alerts.OxygenSaturationStrategy;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 
@@ -29,6 +32,7 @@ public class AlertGeneratorTest {
     @BeforeEach
     void setUp() {
         dataStorage = mock(DataStorage.class);
+        DataStorage.setInstance(dataStorage); // Set the mock instance
         alertGenerator = new AlertGenerator(dataStorage);
         patient = new Patient(1);
     }
@@ -50,6 +54,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("High Systolic Pressure")
     void testSystolicPressureCriticalHigh() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord highSystolic = new PatientRecord(1,185, "SystolicPressure", System.currentTimeMillis());
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(highSystolic));
 
@@ -64,6 +69,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Systolic Pressure Increase Trend")
     void testSystolicPressureIncreaseTrend() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord record1 = new PatientRecord(1,100, "SystolicPressure", System.currentTimeMillis()-1000);
         PatientRecord record2 = new PatientRecord(1,111, "SystolicPressure", System.currentTimeMillis()-500);
         PatientRecord record3 = new PatientRecord(1,122, "SystolicPressure", System.currentTimeMillis()-100);
@@ -72,7 +78,6 @@ public class AlertGeneratorTest {
         List<PatientRecord> records = Arrays.asList(record1, record2, record3,record4);
 
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(records);
-        alertGenerator = new AlertGenerator(dataStorage);
         alertGenerator.evaluateData(patient);
 
         Alert alert = alertGenerator.getAlertAt(0);
@@ -83,6 +88,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Systolic Pressure Decrease Trend")
     void testSystolicPressureDecreaseTrend() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord record1 = new PatientRecord(1,150, "SystolicPressure", System.currentTimeMillis()-10000);
         PatientRecord record2 = new PatientRecord(1,130, "SystolicPressure", System.currentTimeMillis()-5000);
         PatientRecord record3 = new PatientRecord(1,110, "SystolicPressure", System.currentTimeMillis()-100);
@@ -103,6 +109,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("High Diastolic Pressure")
     void testDiastolicPressureCriticalHigh() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord highDiastolic = new PatientRecord(1,130, "DiastolicPressure", System.currentTimeMillis());
 
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(highDiastolic));
@@ -117,6 +124,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Low Diastolic Pressure")
     void testDiastolicPressureCriticalLow() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord highDiastolic = new PatientRecord(1,55, "DiastolicPressure", System.currentTimeMillis());
 
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(highDiastolic));
@@ -131,6 +139,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Diastolic Pressure Increase Trend")
     void testDiastolicPressureIncreaseTrend() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord record1 = new PatientRecord(1,80, "DiastolicPressure", System.currentTimeMillis()-10000);
         PatientRecord record2 = new PatientRecord(1,91, "DiastolicPressure", System.currentTimeMillis()-5000);
         PatientRecord record3 = new PatientRecord(1,102, "DiastolicPressure", System.currentTimeMillis()-100);
@@ -152,6 +161,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Diastolic Pressure Decrease Trend")
     void testDiastolicPressureDecreaseTrend() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord record1 = new PatientRecord(1,110, "DiastolicPressure", System.currentTimeMillis()-10000);
         PatientRecord record2 = new PatientRecord(1,99, "DiastolicPressure", System.currentTimeMillis()-5000);
         PatientRecord record3 = new PatientRecord(1,88, "DiastolicPressure", System.currentTimeMillis()-100);
@@ -172,6 +182,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Low Oxygen Saturation")
     void testOxygenSaturationLow() {
+        alertGenerator.setAlertStrategy(new OxygenSaturationStrategy());
         PatientRecord lowSaturation = new PatientRecord(1,88, "Saturation", System.currentTimeMillis());
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(lowSaturation));
 
@@ -188,6 +199,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Rapid Saturation Drop")
     void testOxygenSaturationDrop() {
+        alertGenerator.setAlertStrategy(new OxygenSaturationStrategy());
         PatientRecord saturation1 = new PatientRecord(1,95, "Saturation", System.currentTimeMillis());
         PatientRecord saturation2 = new PatientRecord(1,110, "Saturation", System.currentTimeMillis()-100);
 
@@ -204,6 +216,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Hypotensive Hypoxemia")
     void testHypotensiveHypoxia() {
+        alertGenerator.setAlertStrategy(new HypotensiveHypoxiaStrategy());
         PatientRecord record1 = new PatientRecord(1,91, "Saturation", System.currentTimeMillis()-100);
         PatientRecord record2 = new PatientRecord(1,89, "SystolicPressure", System.currentTimeMillis());
 
@@ -213,17 +226,14 @@ public class AlertGeneratorTest {
         alertGenerator.evaluateData(patient);
 
         Alert alert1 = alertGenerator.getAlertAt(0);
-        Alert alert2 = alertGenerator.getAlertAt(1);
-        Alert alert3 = alertGenerator.getAlertAt(2);
 
         assertEquals("1", alert1.getPatientId());
-        assertEquals("LowSaturation", alert1.getCondition());
-        assertEquals("CriticalSystolicPressure", alert2.getCondition());
-        assertEquals("HypotensiveHypoxemia", alert3.getCondition());
+        assertEquals("HypotensiveHypoxemia", alert1.getCondition());
     }
     @Test
     @DisplayName("ECG peak")
     void testSignificantEcgPeakDetection() {
+        alertGenerator.setAlertStrategy(new HeartRateStrategy());
         PatientRecord record1 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-1000);
         PatientRecord record2 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-900);
         PatientRecord record3 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-800);
@@ -244,6 +254,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("ECG negative peak")
     void testSignificantEcgPeakNegative() {
+        alertGenerator.setAlertStrategy(new HeartRateStrategy());
         PatientRecord record1 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-1000);
         PatientRecord record2 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-900);
         PatientRecord record3 = new PatientRecord(1,0.5, "ECG", System.currentTimeMillis()-800);
@@ -264,6 +275,8 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Sliding window test")
     public void testEcgSlidingWindowAverage() {
+
+        alertGenerator.setAlertStrategy(new HeartRateStrategy());
         // Setup: Create a patient and some ECG records
         Patient patient = new Patient(1);
         List<PatientRecord> records = new ArrayList<>();

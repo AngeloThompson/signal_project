@@ -42,6 +42,11 @@ public class HealthDataSimulator {
 
     private HealthDataSimulator(){}
 
+    // set the singleton instance for testing
+    public static synchronized void setInstance(HealthDataSimulator mockInstance) {
+        instance = mockInstance;
+    }
+
     /**
      * The main method of the Project.
      * Creates a list object initialized with patient ID's.

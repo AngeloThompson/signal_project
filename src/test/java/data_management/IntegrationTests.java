@@ -4,7 +4,10 @@ import com.data_management.DataStorage;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 import com.data_management.WebSocketClient;
+import com.alerts.Alert;
 import com.alerts.AlertGenerator;
+import com.alerts.BloodPressureStrategy;
+
 import org.java_websocket.server.WebSocketServer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -13,11 +16,17 @@ import org.junit.jupiter.api.*;
 import javax.websocket.DeploymentException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-//import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class IntegrationTests {
@@ -42,11 +51,26 @@ class IntegrationTests {
 
     @BeforeEach
     void setUp() throws URISyntaxException, IOException, DeploymentException {
-        dataStorage = new DataStorage();
-        mockAlertGenerator = mock(AlertGenerator.class);
+        dataStorage = mock(DataStorage.class);
+        DataStorage.setInstance(dataStorage); // Set the mock instance
+        mockAlertGenerator = new AlertGenerator(DataStorage.getInstance());
         client = new WebSocketClient();
-        client.startReading(dataStorage);
+        client.startReading(DataStorage.getInstance());
         client.connect("ws://localhost:8080");
+
+        // Mocking addPatientData to store and retrieve the expected records
+        doAnswer(invocation -> {
+            int patientId = invocation.getArgument(0);
+            double value = invocation.getArgument(1);
+            String recordType = invocation.getArgument(2);
+            long timestamp = invocation.getArgument(3);
+            List<PatientRecord> records = new ArrayList<>();
+            records.add(new PatientRecord(patientId, value, recordType, timestamp));
+            when(dataStorage.getRecords(eq(patientId), anyLong(), anyLong())).thenReturn(records);
+            return null;
+        }).when(dataStorage).addPatientData(anyInt(), anyDouble(), anyString(), anyLong());
+
+        when(dataStorage.getAllPatients()).thenReturn(Collections.singletonList(new Patient(1)));
     }
 
     @AfterEach
@@ -57,8 +81,9 @@ class IntegrationTests {
     @Test
     @DisplayName("Real Time Data processing and AlertGeneration")
     void testRealTimeDataProcessingAndAlertGeneration() throws InterruptedException {
+        mockAlertGenerator.setAlertStrategy(new BloodPressureStrategy());
         // Simulate sending data from the server
-        String data = "1,1627849261000,HeartRate,72.5";
+        String data = "1,1627849261000,SystolicPressure,72.5";
         for (WebSocket conn : server.getConnections()) {
             conn.send(data);
         }
@@ -72,14 +97,17 @@ class IntegrationTests {
         PatientRecord record = records.get(0);
         Assertions.assertEquals(1, record.getPatientId());
         Assertions.assertEquals(72.5, record.getMeasurementValue());
-        Assertions.assertEquals("HeartRate", record.getRecordType());
+        Assertions.assertEquals("SystolicPressure", record.getRecordType());
         Assertions.assertEquals(1627849261000L, record.getTimestamp());
 
         // Verify alert generation
         for (Patient patient : dataStorage.getAllPatients()) {
             mockAlertGenerator.evaluateData(patient);
         }
-        verify(mockAlertGenerator, times(1)).evaluateData(any(Patient.class));
+        Alert alert = mockAlertGenerator.getAlertAt(0);
+
+        assertEquals("1", alert.getPatientId());
+        assertEquals("CriticalSystolicPressure", alert.getCondition());
     }
 
     @Test
