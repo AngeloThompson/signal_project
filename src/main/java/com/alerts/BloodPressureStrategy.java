@@ -4,10 +4,27 @@ import com.data_management.Patient;
 import com.data_management.PatientRecord;
 import java.util.List;
 
+/**
+ * The {@code BloodPressureStrategy} class implements the {@link AlertStrategy} interface.
+ * This strategy is responsible for monitoring patient records for blood pressure trends
+ * and critical values, and generating alerts when specific conditions are met.
+ */
 public class BloodPressureStrategy implements AlertStrategy {
 
     private AlertFactory factory;
 
+    /**
+     * Checks the patient's records for blood pressure alerts.
+     *
+     * This method iterates through the provided patient records to detect
+     * critical systolic and diastolic blood pressure values, as well as trends
+     * in blood pressure changes. If any such condition is met, an appropriate alert
+     * is generated using the {@link BloodPressureAlertFactory}.
+     *
+     * @param patient the patient whose records are being evaluated
+     * @param records the list of patient records to evaluate
+     * @return an {@link Alert} if any alert condition is met, otherwise {@code null}
+     */
     @Override
     public Alert checkAlert(Patient patient, List<PatientRecord> records) {
         int systolicTrend = 0;
@@ -67,24 +84,50 @@ public class BloodPressureStrategy implements AlertStrategy {
         return null;
     }
 
+    /**
+     * Determines the trend in systolic blood pressure.
+     *
+     * @param systolic1 the previous systolic blood pressure value
+     * @param systolic2 the current systolic blood pressure value
+     * @return 1 if there is an increasing trend, -1 if there is a decreasing trend, 0 otherwise
+     */
     private int systolicTrend(double systolic1, double systolic2) {
         if (systolic2 > systolic1 + 10) { return 1; }
         else if (systolic2 < systolic1 - 10) { return -1; }
         return 0;
     }
 
+    /**
+     * Determines the trend in diastolic blood pressure.
+     *
+     * @param diastolic1 the previous diastolic blood pressure value
+     * @param diastolic2 the current diastolic blood pressure value
+     * @return 1 if there is an increasing trend, -1 if there is a decreasing trend, 0 otherwise
+     */
     private int diastolicTrend(double diastolic1, double diastolic2) {
         if (diastolic2 > diastolic1 + 10) { return 1; }
         else if (diastolic2 < diastolic1 - 10) { return -1; }
         return 0;
     }
 
+    /**
+     * Checks the systolic blood pressure for critical thresholds.
+     *
+     * @param systolic the systolic blood pressure value to check
+     * @return 1 if the systolic pressure is critically high, 0 if it is critically low, -1 otherwise
+     */
     private int systolicCriticalCheck(double systolic) {
         if (systolic > 180) { return 1; }
         else if (systolic < 90) { return 0; }
         else { return -1; }
     }
 
+    /**
+     * Checks the diastolic blood pressure for critical thresholds.
+     *
+     * @param diastolic the diastolic blood pressure value to check
+     * @return 1 if the diastolic pressure is critically high, 0 if it is critically low, -1 otherwise
+     */
     private int diastolicCriticalCheck(double diastolic) {
         if (diastolic > 120) { return 1; }
         else if (diastolic < 60) { return 0; }
