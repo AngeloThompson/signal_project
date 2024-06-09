@@ -38,6 +38,9 @@ public class HealthDataSimulator {
     private static ScheduledExecutorService scheduler;
     private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy
     private static final Random random = new Random();
+    private static volatile HealthDataSimulator instance;
+
+    private HealthDataSimulator(){}
 
     /**
      * The main method of the Project.
@@ -56,6 +59,21 @@ public class HealthDataSimulator {
         Collections.shuffle(patientIds); // Randomize the order of patient IDs
 
         scheduleTasksForPatients(patientIds);
+    }
+    /**
+     * Provides the global point of access to the HealthDataSimulator instance.
+     *
+     * @return the singleton instance of HealthDataSimulator
+     */
+    public static HealthDataSimulator getInstance() {
+        if (instance == null) {
+            synchronized (HealthDataSimulator.class) {
+                if (instance == null) {
+                    instance = new HealthDataSimulator();
+                }
+            }
+        }
+        return instance;
     }
 
     /**

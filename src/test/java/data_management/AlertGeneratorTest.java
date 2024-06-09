@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import com.alerts.Alert;
 import com.data_management.DataStorage;
 import com.alerts.AlertGenerator;
+import com.alerts.BloodPressureStrategy;
 import com.data_management.Patient;
 import com.data_management.PatientRecord;
 
@@ -35,6 +36,7 @@ public class AlertGeneratorTest {
     @Test
     @DisplayName("Low Systolic Pressure")
     void testSystolicPressureCriticalLow() {
+        alertGenerator.setAlertStrategy(new BloodPressureStrategy());
         PatientRecord lowSystolic = new PatientRecord(1,85, "SystolicPressure", System.currentTimeMillis());
         when(dataStorage.getRecords(anyInt(), anyLong(), anyLong())).thenReturn(Arrays.asList(lowSystolic));
 

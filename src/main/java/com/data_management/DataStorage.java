@@ -15,6 +15,8 @@ import com.alerts.AlertGenerator;
  * patient IDs.
  */
 public class DataStorage {
+
+    private static volatile DataStorage instance;
     private ConcurrentHashMap<Integer, Patient> patientMap; // Stores patient objects indexed by their unique patient ID.
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(); // ensures that reading and writing operations do not conflict.
     /**
@@ -23,6 +25,22 @@ public class DataStorage {
      */
     public DataStorage() {
         this.patientMap = new ConcurrentHashMap<>(); // thread-safe access and updates to the patient map.
+    }
+    /**
+     * Provides the global point of access to the DataStorage instance.
+     *
+     * @return the singleton instance of DataStorage
+     */
+    public static DataStorage getInstance() {
+        
+        if (instance == null) {
+            synchronized (DataStorage.class) {
+                if (instance == null) {
+                    instance = new DataStorage();
+                }
+            }
+        }
+        return instance;
     }
 
     /**
